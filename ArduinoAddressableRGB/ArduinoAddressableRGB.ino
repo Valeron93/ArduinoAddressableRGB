@@ -7,14 +7,8 @@ FASTLED_USING_NAMESPACE
 #if defined(FASTLED_VERSION) && (FASTLED_VERSION < 3001000)
 #warning "Requires FastLED 3.1 or later; check github for latest code."
 #endif
-
-#define LED_PIN     11
-#define VERSION     0.1
-#define LED_TYPE    WS2811
-#define COLOR_ORDER GRB
-#define NUM_LEDS    46
-#define CHIPSET     WS2812
-bool gReverseDirection = true;
+#define LED_PIN     11            //Digital pin which is connected to LED's DIN
+#define NUM_LEDS    46            // Amount of leds connected
 
 CRGB leds[NUM_LEDS];
 
@@ -26,27 +20,27 @@ String SerialMSG = "";
 boolean stringComplete = false;
 uint8_t currentPatternNumber;
 uint8_t gHue = 0;
-int r = 255;
+int  r = 255;
 int g = 255;
 int b = 255;
+uint8_t brightness = BRIGHTNESS;
+
+
 
 void setup() {
   delay(15);
 
   LEDS.addLeds<WS2811, LED_PIN, GRB>(leds, NUM_LEDS);
-
-  FastLED.setBrightness(BRIGHTNESS);
-
   Serial.begin(9600);
   Serial.setTimeout(50);
   readMem();
-
+  FastLED.setBrightness(brightness);
   CHSV hsv; //костыль
   CRGB rgb;
   rgb = hsv;
 }
 
-
+///////////////////////////////////////////////////EFFECTS LIST/////////////////////////////////////////////////////////////
 typedef void (*PatternList[])();
 PatternList patterns = {black, white, rainbow, solid};
 
@@ -67,21 +61,24 @@ void loop()
       Serial.println("Saved succesfully!");
       saveMem();
     }
+    else if (SerialMSG.startsWith("SETBRIGHTNESS")) {
+      SerialMSG.replace("SETBRIGHTNESS", "");
+      brightness = SerialMSG.toInt();
+      FastLED.setBrightness(brightness);
+    }
+    else if (SerialMSG.startsWith("2")) {
+      for(int i = 0; i < NUM_LEDS; i++) {
+        fadeTowardColor(leds[i], CRGB::Black, 15);
+      }
+      currentPatternNumber = 2;
+    }
     else if (SerialMSG.startsWith("?")) {
       if (SerialMSG.startsWith("?RGB")) {
-        Serial.print(r);
-        Serial.print(",");
-        Serial.print(g);
-        Serial.print(",");
-        Serial.print(b);
-        Serial.print("\n");
+        Serial.println(r + ',' + g + ','+ + b);
       }
       else if (SerialMSG.startsWith("?MODE")) {
         Serial.println(currentPatternNumber);
       }
-    }
-    else if (SerialMSG.startsWith("?VERSION")) {
-      Serial.println(VERSION);
     }
     else {
       currentPatternNumber = SerialMSG.toInt();
@@ -95,13 +92,6 @@ void loop()
   EVERY_N_MILLISECONDS(20) {
     gHue++;  // slowly cycle the "base color" through the rainbow
   }
-}
-
-#define ARRAY_SIZE(A) (sizeof(A) / sizeof((A)[0]))
-
-void nextPattern()
-{
-  currentPatternNumber = (currentPatternNumber + 1) % ARRAY_SIZE(patterns);
 }
 
 void serialEvent() {
@@ -123,6 +113,7 @@ void saveMem() {
   EEPROM.put(10, r);
   EEPROM.put(12, g);
   EEPROM.put(14, b);
+  EEPROM.put(16, brightness);
 }
 
 void readMem() {
@@ -130,51 +121,26 @@ void readMem() {
   EEPROM.get(10, r);
   EEPROM.get(12, g);
   EEPROM.get(14, b);
+  EEPROM.get(16, brightness);
 }
 
+void nblendU8TowardU8( uint8_t& cur, const uint8_t target, uint8_t amount) {
+  if (cur == target) return;
 
-void rainbow() {
-  fill_rainbow(leds, NUM_LEDS, gHue, 5);
-}
-
-void white()
-{
-  for ( int i = 0; i < NUM_LEDS; i++) {
-    fadeTowardColor(leds[i], CRGB::White, 15);
-  }
-}
-
-void black()
-{
-  for ( int i = 0; i < NUM_LEDS; i++) {
-    fadeTowardColor(leds[i], CRGB::Black, 15);
-  }
-}
-void solid() {
-  CRGB color = CRGB(r, g, b);
-  for ( int i = 0; i < NUM_LEDS; i++) {
-    fadeTowardColor(leds[i], color, 15);
-  }
-}
-
-void nblendU8TowardU8( uint8_t& cur, const uint8_t target, uint8_t amount)
-{
-  if ( cur == target) return;
-
-  if ( cur < target ) {
+  if (cur < target) {
     uint8_t delta = target - cur;
-    delta = scale8_video( delta, amount);
+    delta = scale8_video(delta, amount);
     cur += delta;
-  } else {
+  } 
+  else {
     uint8_t delta = cur - target;
-    delta = scale8_video( delta, amount);
+    delta = scale8_video(delta, amount);
     cur -= delta;
   }
 }
-CRGB fadeTowardColor( CRGB& cur, const CRGB& target, uint8_t amount)
-{
-  nblendU8TowardU8( cur.red,   target.red,   amount);
-  nblendU8TowardU8( cur.green, target.green, amount);
-  nblendU8TowardU8( cur.blue,  target.blue,  amount);
+CRGB fadeTowardColor(CRGB& cur, const CRGB& target, uint8_t amount) {
+  nblendU8TowardU8(cur.red, target.red, amount);
+  nblendU8TowardU8(cur.green, target.green, amount);
+  nblendU8TowardU8(cur.blue, target.blue, amount);
   return cur;
 }
