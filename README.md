@@ -44,4 +44,4 @@ PatternList patterns = {black, white, rainbow, solid, colorWheel, yourEffect};
 
 ## Special Thanks
 * [FastLED Library](https://github.com/FastLED/FastLED)
-* [kriegsman](https://github.com/kriegsman) - for his [fadeTowardColor.ino](https://gist.github.com/kriegsman/d0a5ed3c8f38c64adcb4837dafb6e690
+* [kriegsman](https://github.com/kriegsman) - for his [fadeTowardColor.ino](https://gist.github.com/kriegsman/d0a5ed3c8f38c64adcb4837dafb6e690)
