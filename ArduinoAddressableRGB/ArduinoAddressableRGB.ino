@@ -19,7 +19,10 @@ String inputString = ""; //string for handling serial messages
 String SerialMSG = "";
 boolean stringComplete = false;
 uint8_t currentPatternNumber;
-uint8_t gHue = 0;
+
+uint8_t rainbowHue = 0;
+uint8_t colorWheelHue = 0;
+
 int  r = 255;
 int g = 255;
 int b = 255;
@@ -29,7 +32,6 @@ uint8_t brightness = BRIGHTNESS;
 
 void setup() {
   delay(15);
-
   LEDS.addLeds<WS2811, LED_PIN, GRB>(leds, NUM_LEDS);
   Serial.begin(9600);
   Serial.setTimeout(50);
@@ -42,7 +44,7 @@ void setup() {
 
 ///////////////////////////////////////////////////EFFECTS LIST/////////////////////////////////////////////////////////////
 typedef void (*PatternList[])();
-PatternList patterns = {black, white, rainbow, solid};
+PatternList patterns = {black, white, rainbow, solid, colorWheel};
 
 void loop()
 {
@@ -66,12 +68,6 @@ void loop()
       brightness = SerialMSG.toInt();
       FastLED.setBrightness(brightness);
     }
-    else if (SerialMSG.startsWith("2")) {
-      for(int i = 0; i < NUM_LEDS; i++) {
-        fadeTowardColor(leds[i], CRGB::Black, 15);
-      }
-      currentPatternNumber = 2;
-    }
     else if (SerialMSG.startsWith("?")) {
       if (SerialMSG.startsWith("?RGB")) {
         Serial.println(r + ',' + g + ','+ + b);
@@ -90,7 +86,10 @@ void loop()
   patterns[currentPatternNumber]();
 
   EVERY_N_MILLISECONDS(20) {
-    gHue++;  // slowly cycle the "base color" through the rainbow
+    rainbowHue++;
+  }
+  EVERY_N_MILLISECONDS(120) {
+    colorWheelHue++;
   }
 }
 

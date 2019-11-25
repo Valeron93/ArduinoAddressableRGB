@@ -1,7 +1,7 @@
 //Effects list
 //Don't forget to add new void to pattern list
 void rainbow() {
-  fill_rainbow(leds, NUM_LEDS, gHue, 5);
+  fill_rainbow(leds, NUM_LEDS, rainbowHue, 5);
 }
 
 void white()
@@ -21,5 +21,11 @@ void solid() {
   CRGB color = CRGB(r, g, b);
   for (int i = 0; i < NUM_LEDS; i++) {
     fadeTowardColor(leds[i], color, 15);
+  }
+}
+
+void colorWheel() {
+    for (int i = 0; i < NUM_LEDS; i++) {
+    fadeTowardColor(leds[i], CHSV(colorWheelHue,255,255), 15);
   }
 }
