@@ -44,7 +44,7 @@ void setup() {
 
 ///////////////////////////////////////////////////EFFECTS LIST/////////////////////////////////////////////////////////////
 typedef void (*PatternList[])();
-PatternList patterns = {black, white, rainbow, solid, colorWheel};
+PatternList patterns = {black, white, rainbow, solid, colorWheel, cylon};
 
 void loop()
 {
