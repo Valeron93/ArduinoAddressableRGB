@@ -1,6 +1,7 @@
 
 #include <EEPROM.h>
 #include <FastLED.h>
+#include <ESP8266WiFi.h>
 
 FASTLED_USING_NAMESPACE
 
